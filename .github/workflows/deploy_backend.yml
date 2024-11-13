@@ -21,6 +21,7 @@ jobs:
          cp -R backend/* build
          touch build/.env
          echo "DB_HOST=${{ secrets.DB_HOST }}" >> build/.env
+         echo "DB_PORT=${{ secrets.DB_PORT }}" >> build/.env
          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> build/.env
          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> build/.env
 
