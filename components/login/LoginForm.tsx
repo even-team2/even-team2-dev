@@ -7,9 +7,16 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-
 
 const formSchema = z.object({
   userId: z.string().min(1, {
@@ -62,7 +69,12 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
             <FormItem>
               <FormLabel>비밀번호</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="••••••••" {...field} autoComplete="current-password" />
+                <Input
+                  type="password"
+                  placeholder="••••••••"
+                  {...field}
+                  autoComplete="current-password"
+                />
               </FormControl>
               <FormDescription>비밀번호를 입력해 주세요.</FormDescription>
               <FormMessage />
