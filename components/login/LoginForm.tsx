@@ -1,6 +1,6 @@
 'use client';
 
-import type { LoginFormUserDataType } from '@/app/page';
+import type { LoginRequest } from '@/types/auth';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -27,11 +27,11 @@ const formSchema = z.object({
   }),
 });
 
-type LoginFormProps = {
-  onLoginSuccess: (userData: LoginFormUserDataType) => void;
-};
+interface LoginFormProps {
+  onSubmit: (userData: LoginRequest) => void;
+}
 
-export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
+export default function LoginForm({ onSubmit }: LoginFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -40,14 +40,13 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
     },
   });
 
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
-    console.log('폼 데이터:', data);
-    onLoginSuccess(data);
+  const handleSubmit = (data: z.infer<typeof formSchema>) => {
+    onSubmit(data);
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
         <FormField
           control={form.control}
           name="userId"
