@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { LoginFormUserDataType } from '@/app/page';
+import type { LoginFormUserDataType } from '@/app/page';
 
 const formSchema = z.object({
   userId: z.string().min(1, {
