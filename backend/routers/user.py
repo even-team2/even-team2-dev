@@ -21,7 +21,7 @@ async def me(access_token=Depends(HTTPBearer())) -> UserResponse:
                 return UserResponse(
                     success=True,
                     data=UserResponseData(
-                        uuid=access_token.credentials,
+                        uuid=user.uuid,
                         user_id=user.user_id,
                         user_name=user.user_name
                     )
