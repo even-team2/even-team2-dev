@@ -1,0 +1,75 @@
+name: deploy frontend
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - frontend
+    paths:
+      - frontend/**
+
+jobs:
+  deploy:
+    name: deploy frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Cache pnpm dependencies and build cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pnpm-store
+            ${{ github.workspace }}/frontend/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-
+
+      - name: install dependencies
+        run: |
+          cd frontend
+          pnpm install
+
+      - name: Build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+        run: |
+          cd frontend
+          pnpm run build
+          cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/
+
+      - name: Archive
+        run: tar -czf build.tar.gz -C frontend/.next standalone
+
+      - name: Copy file to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          port: ${{ secrets.SSH_PORT }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          source: build.tar.gz
+          target: frontend
+
+      - name: Deploy build output via SSH
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd frontend
+            rm -rf standalone
+            tar -xzf build.tar.gz
+            rm build.tar.gz
+            pm2 start standalone/server.js --name "even-team2-frontend" || pm2 reload even-team2-frontend --update-env
+            pm2 status even-team2-frontend
