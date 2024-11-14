@@ -1,0 +1,49 @@
+name: deploy backend
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - backend
+    paths:
+      - backend/**
+
+jobs:
+  deploy:
+    name: deploy backend
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout
+      uses: actions/checkout@v4
+
+    - name: build
+      run: |
+         mkdir build
+         cp -R backend/* build
+         touch build/.env
+         echo "DB_HOST=${{ secrets.DB_HOST }}" >> build/.env
+         echo "DB_PORT=${{ secrets.DB_PORT }}" >> build/.env
+         echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> build/.env
+         echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> build/.env
+         echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> build/.env
+
+    - name: archive
+      run: tar czf build.tar.gz build/* build/.env
+
+    - name: copy file to server
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        port: ${{ secrets.SSH_PORT }}
+        username: ${{ secrets.SSH_USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        source: build.tar.gz
+        target: backend
+
+    - name: execute deploy script
+      uses: appleboy/ssh-action@v1.1.0
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        port: ${{ secrets.SSH_PORT }}
+        username: ${{ secrets.SSH_USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        script: "rm -rf backend/build; cd backend; tar xzf build.tar.gz; cd build; ./setup.sh; ./run.sh"
